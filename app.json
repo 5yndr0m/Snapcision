@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Snapcision",
-    "slug": "Snapcision",
+    "slug": "snapcision",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0e6a6176-cd0e-4a7e-bb0d-ffa964508d6e"
+      }
+    },
+    "owner": "senaldilanjana"
   }
 }

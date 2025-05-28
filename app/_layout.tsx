@@ -1,5 +1,10 @@
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
+import { Provider } from "react-native-paper"
 
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <Provider>
+      <Slot />
+    </Provider>
+  );
 }

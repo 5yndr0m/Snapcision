@@ -1,69 +1,97 @@
-import { ScrollView, Linking, StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { List, Switch, useTheme, Divider } from 'react-native-paper';
-import { useState } from 'react';
-import { clearMediaLibraryCache } from '../utils/media';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import MediaManager from '../utils/mediaManager';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function SettingsScreen() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function Settings() {
+  const systemColorScheme = useColorScheme();
   const theme = useTheme();
+  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
+  const [isSystemTheme, setIsSystemTheme] = useState(true);
 
-  const openLink = async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) await Linking.openURL(url);
+  useEffect(() => {
+    loadThemePreference();
+  }, []);
+
+  const loadThemePreference = async () => {
+    const themePreference = await AsyncStorage.getItem('themePreference');
+    const useSystemTheme = await AsyncStorage.getItem('useSystemTheme');
+    
+    setIsSystemTheme(useSystemTheme !== 'false');
+    setIsDarkMode(themePreference === 'dark');
+  };
+
+  const handleThemeToggle = async () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    await AsyncStorage.setItem('themePreference', newMode ? 'dark' : 'light');
+    await AsyncStorage.setItem('useSystemTheme', 'false');
+    setIsSystemTheme(false);
+  };
+
+  const handleSystemThemeToggle = async () => {
+    const newValue = !isSystemTheme;
+    setIsSystemTheme(newValue);
+    await AsyncStorage.setItem('useSystemTheme', newValue.toString());
+    if (newValue) {
+      setIsDarkMode(systemColorScheme === 'dark');
+    }
+  };
+
+  const handleClearCache = async () => {
+    try {
+      await MediaManager.clearMediaCache();
+    } catch (error) {
+      console.error('Failed to clear cache:', error);
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <List.Subheader>Preferences</List.Subheader>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <List.Section>
+        <List.Subheader>Appearance</List.Subheader>
+        <List.Item
+          title="Use System Theme"
+          left={props => <List.Icon {...props} icon="theme-light-dark" />}
+          right={() => (
+            <Switch
+              value={isSystemTheme}
+              onValueChange={handleSystemThemeToggle}
+            />
+          )}
+        />
+        {!isSystemTheme && (
+          <List.Item
+            title="Dark Mode"
+            left={props => <List.Icon {...props} icon={isDarkMode ? 'weather-night' : 'weather-sunny'} />}
+            right={() => (
+              <Switch
+                value={isDarkMode}
+                onValueChange={handleThemeToggle}
+              />
+            )}
+          />
+        )}
+      </List.Section>
 
-      <List.Item
-        title="Dark Mode"
-        right={() => <Switch value={darkMode} onValueChange={() => setDarkMode(!darkMode)} />}
-      />
+      <Divider />
 
-      <List.Item
-        title="Clear Media Cache"
-        onPress={async () => {
-          await clearMediaLibraryCache();
-          alert('Cache cleared.');
-        }}
-        left={() => <List.Icon icon="delete" />}
-      />
-
-      <Divider style={{ marginVertical: 10 }} />
-
-      <List.Subheader>About</List.Subheader>
-
-      <List.Item
-        title="Made by Syndrom"
-        description="Image Review App"
-        left={() => <List.Icon icon="account-heart-outline" />}
-      />
-
-      <List.Item
-        title="GitHub"
-        description="View Source Code"
-        onPress={() => openLink('https://github.com/username/repo')}
-        left={() => <List.Icon icon="github" />}
-      />
-
-      <List.Item
-        title="Twitter"
-        onPress={() => openLink('https://twitter.com/username')}
-        left={() => <List.Icon icon="twitter" />}
-      />
-
-      <List.Item
-        title="LinkedIn"
-        onPress={() => openLink('https://linkedin.com/in/username')}
-        left={() => <List.Icon icon="linkedin" />}
-      />
-    </ScrollView>
+      <List.Section>
+        <List.Subheader>Media Management</List.Subheader>
+        <List.Item
+          title="Clear Media Cache"
+          left={props => <List.Icon {...props} icon="trash-can-outline" />}
+          onPress={handleClearCache}
+        />
+      </List.Section>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flex: 1,
   },
 });

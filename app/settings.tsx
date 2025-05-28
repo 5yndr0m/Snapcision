@@ -2,20 +2,31 @@ import { StyleSheet } from 'react-native';
 import { Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
-import { BackToHomeButton } from '@/components/navigation/BackToHomeButton';
+import { Header } from '@/components/navigation/Header';
+import { useRouter } from 'expo-router';
 
 export default function Settings() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
-      <Surface style={styles.surface}>
+      <Header 
+        title="Settings"
+        onBackPress={() => router.back()}
+      />
+      <Surface style={styles.content}>
         <AppearanceSettings />
-        <BackToHomeButton />
       </Surface>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  surface: { flex: 1 },
+  container: { 
+    flex: 1,
+  },
+  content: { 
+    flex: 1,
+    padding: 16,
+  },
 });

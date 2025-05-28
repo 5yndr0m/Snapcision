@@ -23,7 +23,10 @@ export function Header({
       {onBackPress && (
         <Appbar.BackAction onPress={onBackPress} />
       )}
-      <Appbar.Content title={title} />
+      <Appbar.Content 
+        title={title} 
+        titleStyle={styles.title}
+      />
       {showSettings && (
         <Link href="/settings" asChild>
           <Appbar.Action icon="cog" />
@@ -34,4 +37,9 @@ export function Header({
 }
 
 const styles = StyleSheet.create({
+  title: {
+    fontFamily: 'System',  
+    fontWeight: '900', 
+    fontSize: 20,
+  },
 });

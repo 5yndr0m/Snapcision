@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View, Image } from 'react-native';
-import { Card, ActivityIndicator } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
+import { Card, ActivityIndicator, Text } from 'react-native-paper';
 import * as MediaLibrary from 'expo-media-library';
 
 interface AlbumThumbnailProps {
   album: MediaLibrary.Album;
+  width: number;
 }
 
-export function AlbumThumbnail({ album }: AlbumThumbnailProps) {
+export function AlbumThumbnail({ album, width }: AlbumThumbnailProps) {
   const [thumbnail, setThumbnail] = useState<MediaLibrary.Asset | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,16 +33,19 @@ export function AlbumThumbnail({ album }: AlbumThumbnailProps) {
   }, [album.id]);
 
   return (
-    <Card style={styles.card}>
+    <Card style={[styles.card, { width }]}>
       <Card.Cover
         source={thumbnail ? { uri: thumbnail.uri } : require('@/assets/placeholder.png')}
-        style={styles.thumbnail}
+        style={[styles.thumbnail, { width }]}
       />
-      <Card.Title
-        title={album.title}
-        subtitle={`${album.assetCount} items`}
-        titleNumberOfLines={1}
-      />
+      <Card.Content style={styles.content}>
+        <Text variant="titleMedium" numberOfLines={1} style={styles.title}>
+          {album.title}
+        </Text>
+        <Text variant="bodySmall" style={styles.subtitle}>
+          {album.assetCount} items
+        </Text>
+      </Card.Content>
       {loading && (
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
@@ -53,10 +57,20 @@ export function AlbumThumbnail({ album }: AlbumThumbnailProps) {
 
 const styles = StyleSheet.create({
   card: {
-    margin: 8,
+    marginBottom: 8,
   },
   thumbnail: {
     height: 150,
+    backgroundColor: '#f0f0f0',
+  },
+  content: {
+    paddingVertical: 8,
+  },
+  title: {
+    marginBottom: 2,
+  },
+  subtitle: {
+    opacity: 0.7,
   },
   loader: {
     ...StyleSheet.absoluteFillObject,

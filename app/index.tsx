@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Surface, Text } from "react-native-paper";
+import { Surface } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/navigation/Header";
 import { MediaAlbums } from "@/components/media/MediaAlbums";

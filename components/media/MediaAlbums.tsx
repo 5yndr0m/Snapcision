@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import { StyleSheet, View, FlatList, Dimensions } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import * as MediaLibrary from 'expo-media-library';
 import { AlbumThumbnail } from './AlbumThumbnail';
+
+const { width } = Dimensions.get('window');
+const COLUMN_COUNT = 2;
+const GAP = 8;
+const ITEM_WIDTH = (width - (GAP * (COLUMN_COUNT + 1))) / COLUMN_COUNT;
 
 export function MediaAlbums() {
   const [albums, setAlbums] = useState<MediaLibrary.Album[]>([]);
@@ -44,9 +49,16 @@ export function MediaAlbums() {
     <FlatList
       data={albums}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <AlbumThumbnail album={item} />}
-      numColumns={2}
+      renderItem={({ item }) => (
+        <AlbumThumbnail 
+          album={item} 
+          width={ITEM_WIDTH}
+        />
+      )}
+      numColumns={COLUMN_COUNT}
       contentContainerStyle={styles.content}
+      columnWrapperStyle={styles.row}
+      showsVerticalScrollIndicator={false}
     />
   );
 }
@@ -58,6 +70,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    padding: 4,
+    padding: GAP,
+  },
+  row: {
+    justifyContent: 'flex-start',
+    gap: GAP,
   },
 });

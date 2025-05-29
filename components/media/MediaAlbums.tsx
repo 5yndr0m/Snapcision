@@ -7,7 +7,7 @@ import { AlbumThumbnail } from './AlbumThumbnail';
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 2;
 const GAP = 8;
-const ITEM_WIDTH = (width - (GAP * (COLUMN_COUNT + 1))) / COLUMN_COUNT;
+const ITEM_WIDTH = (width - (GAP * (COLUMN_COUNT + 2))) / COLUMN_COUNT;
 
 export function MediaAlbums() {
   const [albums, setAlbums] = useState<MediaLibrary.Album[]>([]);
@@ -16,7 +16,7 @@ export function MediaAlbums() {
 
   useEffect(() => {
     (async () => {
-      const permissionResult = await MediaLibrary.requestPermissionsAsync();
+      const permissionResult = await MediaLibrary.requestPermissionsAsync(true);
       setPermission(permissionResult);
 
       if (permissionResult.granted) {

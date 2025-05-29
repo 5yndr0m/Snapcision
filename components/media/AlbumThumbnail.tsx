@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { Card, ActivityIndicator, Text } from 'react-native-paper';
 import * as MediaLibrary from 'expo-media-library';
+import { useRouter } from 'expo-router';
 
 interface AlbumThumbnailProps {
   album: MediaLibrary.Album;
@@ -11,6 +12,7 @@ interface AlbumThumbnailProps {
 export function AlbumThumbnail({ album, width }: AlbumThumbnailProps) {
   const [thumbnail, setThumbnail] = useState<MediaLibrary.Asset | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -32,26 +34,35 @@ export function AlbumThumbnail({ album, width }: AlbumThumbnailProps) {
     })();
   }, [album.id]);
 
+  const handlePress = () => {
+    router.push({
+      pathname: `/album/${album.id}`,
+      params: { title: album.title }
+    });
+  };
+
   return (
-    <Card style={[styles.card, { width }]}>
-      <Card.Cover
-        source={thumbnail ? { uri: thumbnail.uri } : require('@/assets/placeholder.png')}
-        style={[styles.thumbnail, { width }]}
-      />
-      <Card.Content style={styles.content}>
-        <Text variant="titleMedium" numberOfLines={1} style={styles.title}>
-          {album.title}
-        </Text>
-        <Text variant="bodySmall" style={styles.subtitle}>
-          {album.assetCount} items
-        </Text>
-      </Card.Content>
-      {loading && (
-        <View style={styles.loader}>
-          <ActivityIndicator size="small" />
-        </View>
-      )}
-    </Card>
+    <Pressable onPress={handlePress}>
+      <Card style={[styles.card, { width }]}>
+        <Card.Cover
+          source={thumbnail ? { uri: thumbnail.uri } : require('@/assets/placeholder.png')}
+          style={[styles.thumbnail, { width }]}
+        />
+        <Card.Content style={styles.content}>
+          <Text variant="titleMedium" numberOfLines={1} style={styles.title}>
+            {album.title}
+          </Text>
+          <Text variant="bodySmall" style={styles.subtitle}>
+            {album.assetCount} items
+          </Text>
+        </Card.Content>
+        {loading && (
+          <View style={styles.loader}>
+            <ActivityIndicator size="small" />
+          </View>
+        )}
+      </Card>
+    </Pressable>
   );
 }
 

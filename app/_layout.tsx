@@ -1,40 +1,23 @@
-import { Slot } from 'expo-router';
-import { PaperProvider } from 'react-native-paper';
-import { useColorScheme } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
-import Walkthrough from "./walkthrough";
-import { StatusBar } from "expo-status-bar";
-import { customLightTheme, customDarkTheme } from '../utils/theme';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Slot } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 
-export default function Layout() {
-  const colorScheme = useColorScheme();
-  const [theme, setTheme] = useState(colorScheme === 'dark' ? customDarkTheme : customLightTheme);
-  const [showWalkthrough, setShowWalkthrough] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const savedTheme = await AsyncStorage.getItem('themePreference');
-      if (savedTheme) {
-        setTheme(savedTheme === 'dark' ? customDarkTheme : customLightTheme);
-      } else {
-        setTheme(colorScheme === 'dark' ? customDarkTheme : customLightTheme);
-      }
-
-      const seen = await AsyncStorage.getItem('seenWalkthrough');
-      setShowWalkthrough(seen !== 'true');
-    })();
-  }, [colorScheme]);
-
-  if (showWalkthrough === null) return null;
-
+export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={theme}>
-        <StatusBar style={theme === customDarkTheme ? 'light' : 'dark'} />
-        {showWalkthrough ? <Walkthrough /> : <Slot />}
-      </PaperProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.container}>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <Slot />
+        </SafeAreaProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

@@ -57,47 +57,74 @@ export default function AlbumScreen() {
       return newSet;
     });
   };
+  const handleBatchDelete = async () => {
+    if (deleting || markedForDeletion.size === 0) return;
+
+    const { granted } = await MediaLibrary.getPermissionsAsync();
+    if (!granted) {
+      const { granted: newGranted } =
+        await MediaLibrary.requestPermissionsAsync(true);
+      if (!newGranted) {
+        Alert.alert(
+          "Permission Required",
+          "This app needs permission to delete photos. Please grant permission in your device settings.",
+          [
+            {
+              text: "Open Settings",
+              onPress: () => Linking.openSettings(),
+            },
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+          ],
+        );
+        return;
+      }
+    }
+
     Alert.alert(
-      'Delete Image',
-      'Are you sure you want to delete this image?',
+      "Delete Images",
+      `Are you sure you want to delete ${markedForDeletion.size} marked images?`,
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               setDeleting(true);
-              const permission = await MediaLibrary.requestPermissionsAsync(true);
-              
-              if (!permission.granted) {
-                Alert.alert('Permission Denied', 'Cannot delete images without permission');
-                return;
+
+              const assetsToDelete = assets.filter((asset) =>
+                markedForDeletion.has(asset.id),
+              );
+
+              const result =
+                await MediaLibrary.deleteAssetsAsync(assetsToDelete);
+
+              if (!result) {
+                throw new Error("Failed to delete assets");
               }
 
-              await MediaLibrary.deleteAssetsAsync([asset]);
-              
-              // Remove the asset from the state
-              setAssets(currentAssets => 
-                currentAssets.filter(a => a.id !== asset.id)
+              setAssets((currentAssets) =>
+                currentAssets.filter((a) => !markedForDeletion.has(a.id)),
               );
-              
-              // If we deleted all images or the last image, go back
-              if (assets.length <= 1) {
+              setMarkedForDeletion(new Set());
+
+              if (assets.length === assetsToDelete.length) {
                 router.back();
-              }
-              // If we deleted the current image, show the next one
-              else if (currentIndex >= assets.length - 1) {
-                setCurrentIndex(currentIndex - 1);
+              } else {
+                setCurrentIndex(0);
+                setReviewMode(false);
               }
             } catch (error) {
-              console.error('Error deleting asset:', error);
+              console.error("Error deleting assets:", error);
               Alert.alert(
-                'Error',
-                'Failed to delete image. Please check app permissions in your device settings.'
+                "Error",
+                "Failed to delete images. Please try again or check app permissions.",
               );
             } finally {
               setDeleting(false);
@@ -105,7 +132,7 @@ export default function AlbumScreen() {
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 

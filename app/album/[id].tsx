@@ -18,9 +18,28 @@ export default function AlbumScreen() {
   const [markedForDeletion, setMarkedForDeletion] = useState<Set<string>>(
     new Set(),
   );
+  const [hasPermissions, setHasPermissions] = useState(false);
 
   useEffect(() => {
-    loadAssets();
+    (async () => {
+      const permission = await MediaLibrary.requestPermissionsAsync(true);
+      setHasPermissions(permission.granted);
+      if (permission.granted) {
+        loadAssets();
+      } else {
+        setLoading(false);
+        Alert.alert(
+          "Permission Required",
+          "This app needs access to your media library to function. Please grant permission in your device settings.",
+          [
+            {
+              text: "Open Settings",
+              onPress: () => Linking.openSettings(),
+            },
+          ],
+        );
+      }
+    })();
   }, [id]);
 
   const loadAssets = async () => {

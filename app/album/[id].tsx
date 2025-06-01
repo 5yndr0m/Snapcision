@@ -50,6 +50,13 @@ export default function AlbumScreen() {
     handleNext();
   };
 
+  const handleUnmark = (asset: MediaLibrary.Asset) => {
+    setMarkedForDeletion((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(asset.id);
+      return newSet;
+    });
+  };
     Alert.alert(
       'Delete Image',
       'Are you sure you want to delete this image?',

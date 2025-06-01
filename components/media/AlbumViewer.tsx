@@ -16,21 +16,29 @@ const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 interface AlbumViewerProps {
   assets: MediaLibrary.Asset[];
   currentIndex: number;
-  onDelete: (asset: MediaLibrary.Asset) => void;
+  onMarkForDeletion: (asset: MediaLibrary.Asset) => void;
   onNext: () => void;
   onPrevious: () => void;
   loading: boolean;
   deleting: boolean;
+  markedForDeletion: Set<string>;
+  reviewMode: boolean;
+  onUnmark?: (asset: MediaLibrary.Asset) => void;
+  onBatchDelete?: () => void;
 }
 
 export function AlbumViewer({
   assets,
   currentIndex,
-  onDelete,
+  onMarkForDeletion,
   onNext,
   onPrevious,
   loading,
-  deleting
+  deleting,
+  markedForDeletion,
+  reviewMode,
+  onUnmark,
+  onBatchDelete,
 }: AlbumViewerProps) {
   const translateX = useSharedValue(0);
 

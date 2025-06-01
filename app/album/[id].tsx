@@ -15,6 +15,9 @@ export default function AlbumScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [markedForDeletion, setMarkedForDeletion] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     loadAssets();
@@ -38,6 +41,14 @@ export default function AlbumScreen() {
 
   const handleDelete = async (asset: MediaLibrary.Asset) => {
     if (deleting) return; // Prevent multiple deletion attempts
+  const handleMarkForDeletion = (asset: MediaLibrary.Asset) => {
+    setMarkedForDeletion((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(asset.id);
+      return newSet;
+    });
+    handleNext();
+  };
 
     Alert.alert(
       'Delete Image',

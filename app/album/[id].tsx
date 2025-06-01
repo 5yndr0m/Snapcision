@@ -1,12 +1,12 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Dimensions, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as MediaLibrary from 'expo-media-library';
-import { Header } from '@/components/navigation/Header';
-import { AlbumViewer } from '@/components/media/AlbumViewer';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { StyleSheet, Dimensions, Alert, Linking } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as MediaLibrary from "expo-media-library";
+import { Header } from "@/components/navigation/Header";
+import { AlbumViewer } from "@/components/media/AlbumViewer";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function AlbumScreen() {
   const { id, title } = useLocalSearchParams();
@@ -18,6 +18,7 @@ export default function AlbumScreen() {
   const [markedForDeletion, setMarkedForDeletion] = useState<Set<string>>(
     new Set(),
   );
+  const [reviewMode, setReviewMode] = useState(false);
   const [hasPermissions, setHasPermissions] = useState(false);
 
   useEffect(() => {
@@ -46,20 +47,18 @@ export default function AlbumScreen() {
     try {
       const result = await MediaLibrary.getAssetsAsync({
         album: id as string,
-        sortBy: ['creationTime'],
-        mediaType: ['photo'],
+        sortBy: ["creationTime"],
+        mediaType: ["photo"],
       });
       setAssets(result.assets);
     } catch (error) {
-      console.error('Error loading assets:', error);
-      Alert.alert('Error', 'Failed to load images');
+      console.error("Error loading assets:", error);
+      Alert.alert("Error", "Failed to load images");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (asset: MediaLibrary.Asset) => {
-    if (deleting) return; // Prevent multiple deletion attempts
   const handleMarkForDeletion = (asset: MediaLibrary.Asset) => {
     setMarkedForDeletion((prev) => {
       const newSet = new Set(prev);
@@ -76,6 +75,7 @@ export default function AlbumScreen() {
       return newSet;
     });
   };
+
   const handleBatchDelete = async () => {
     if (deleting || markedForDeletion.size === 0) return;
 
@@ -169,18 +169,22 @@ export default function AlbumScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header 
-        title={title as string || 'Album'}
+      <Header
+        title={(title as string) || "Album"}
         onBackPress={() => router.back()}
       />
       <AlbumViewer
         assets={assets}
         currentIndex={currentIndex}
-        onDelete={handleDelete}
+        onMarkForDeletion={handleMarkForDeletion}
         onNext={handleNext}
         onPrevious={handlePrevious}
         loading={loading}
         deleting={deleting}
+        markedForDeletion={markedForDeletion}
+        reviewMode={reviewMode}
+        onUnmark={handleUnmark}
+        onBatchDelete={handleBatchDelete}
       />
     </SafeAreaView>
   );

@@ -19,11 +19,13 @@
       "edgeToEdgeEnabled": true,
       "package": "com.syndrom.snapcision",
       "permissions": [
-        "WRITE_EXTERNAL_STORAGE",
-        "READ_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES",
-        "MANAGE_EXTERNAL_STORAGE"
-      ]
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResources": true,
+      "android.enableR8": true
     },
     "web": {
       "bundler": "metro",

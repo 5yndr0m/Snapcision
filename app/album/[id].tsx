@@ -5,12 +5,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as MediaLibrary from "expo-media-library";
 import { Header } from "@/components/navigation/Header";
 import { AlbumViewer } from "@/components/media/AlbumViewer";
+import { useMediaLibraryPermissions } from "@/hooks/useMediaLibraryPermissions";
 
 const { width } = Dimensions.get("window");
 
 export default function AlbumScreen() {
   const { id, title } = useLocalSearchParams();
   const router = useRouter();
+  const { hasPermissions, checkAndRequestPermissions } =
+    useMediaLibraryPermissions();
   const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -19,26 +22,14 @@ export default function AlbumScreen() {
     new Set(),
   );
   const [reviewMode, setReviewMode] = useState(false);
-  const [hasPermissions, setHasPermissions] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const permission = await MediaLibrary.requestPermissionsAsync(true);
-      setHasPermissions(permission.granted);
-      if (permission.granted) {
+      const granted = await checkAndRequestPermissions();
+      if (granted) {
         loadAssets();
       } else {
         setLoading(false);
-        Alert.alert(
-          "Permission Required",
-          "This app needs access to your media library to function. Please grant permission in your device settings.",
-          [
-            {
-              text: "Open Settings",
-              onPress: () => Linking.openSettings(),
-            },
-          ],
-        );
       }
     })();
   }, [id]);
@@ -79,28 +70,8 @@ export default function AlbumScreen() {
   const handleBatchDelete = async () => {
     if (deleting || markedForDeletion.size === 0) return;
 
-    const { granted } = await MediaLibrary.getPermissionsAsync();
-    if (!granted) {
-      const { granted: newGranted } =
-        await MediaLibrary.requestPermissionsAsync(true);
-      if (!newGranted) {
-        Alert.alert(
-          "Permission Required",
-          "This app needs permission to delete photos. Please grant permission in your device settings.",
-          [
-            {
-              text: "Open Settings",
-              onPress: () => Linking.openSettings(),
-            },
-            {
-              text: "Cancel",
-              style: "cancel",
-            },
-          ],
-        );
-        return;
-      }
-    }
+    const hasPermission = await checkAndRequestPermissions();
+    if (!hasPermission) return;
 
     Alert.alert(
       "Delete Images",
@@ -116,16 +87,19 @@ export default function AlbumScreen() {
           onPress: async () => {
             try {
               setDeleting(true);
-
               const assetsToDelete = assets.filter((asset) =>
                 markedForDeletion.has(asset.id),
               );
 
-              const result =
-                await MediaLibrary.deleteAssetsAsync(assetsToDelete);
-
-              if (!result) {
-                throw new Error("Failed to delete assets");
+              const BATCH_SIZE = 20;
+              for (let i = 0; i < assetsToDelete.length; i += BATCH_SIZE) {
+                const batch = assetsToDelete.slice(i, i + BATCH_SIZE);
+                const result = await MediaLibrary.deleteAssetsAsync(batch);
+                if (!result) {
+                  throw new Error(
+                    `Failed to delete batch ${i / BATCH_SIZE + 1}`,
+                  );
+                }
               }
 
               setAssets((currentAssets) =>
@@ -143,7 +117,7 @@ export default function AlbumScreen() {
               console.error("Error deleting assets:", error);
               Alert.alert(
                 "Error",
-                "Failed to delete images. Please try again or check app permissions.",
+                "Failed to delete some images. Please try again.",
               );
             } finally {
               setDeleting(false);
